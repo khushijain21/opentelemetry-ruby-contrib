@@ -16,37 +16,25 @@ module OpenTelemetry
             formatted_message = super(severity, datetime, progname, msg)
             return formatted_message if skip_instrumenting?
 
-            logger_provider.logger(
-              name: @config[:name],
-              version: @config[:version]
+            OpenTelemetry.logger_provider.logger(
+              name: OpenTelemetry::Instrumentation::Logger::NAME,
+              version: OpenTelemetry::Instrumentation::Logger::VERSION
             ).on_emit(
               severity_text: severity,
               severity_number: severity_number(severity),
               timestamp: datetime,
-              body: msg, # New Relic uses formatted_message here. This also helps us with not recording progname, because it is included in the formatted message by default. Which seems more appropriate?
-              context: OpenTelemetry::Context.Current
+              body: msg # New Relic uses formatted_message here. This also helps us with not recording progname, because it is included in the formatted message by default. Which seems more appropriate?
             )
             formatted_message
           end
 
-          option :name, default: OpenTelemetry::Instrumentation::Logger::NAME, validate: :string
-          option :version, default: OpenTelemetry::Instrumentation::Logger::VERSION, validate: :string
-
           private
 
-          def logger_provider
-            @logger_provider ||= OpenTelemetry.logger_provider
-          end
+          # Placeholder for now
+          def instrumentation_config; end
 
           def skip_instrumenting?
-            @skip_instrumenting || false # Set to a default value
-          end
-
-          def instrumentation_config
-            {
-              name: @config[:name] || OpenTelemetry::Instrumentation::Logger::DEFAULT_NAME,
-              version: @config[:version] || OpenTelemetry::Instrumentation::Logger::DEFAULT_VERSION
-            }
+            instance_variable_get(:@skip_instrumenting)
           end
 
           def severity_number(severity)
