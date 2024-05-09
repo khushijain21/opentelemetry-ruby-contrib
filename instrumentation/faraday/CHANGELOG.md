@@ -1,5 +1,13 @@
 # Release History: opentelemetry-instrumentation-faraday
 
+### v0.24.2 / 2024-04-30
+
+* FIXED: Bundler conflict warnings
+
+### v0.24.1 / 2024-03-22
+
+* FIXED: Propagate response attributes on Faraday::Error.
+
 ### v0.24.0 / 2024-02-20
 
 * ADDED: Faraday add support for internal spans
