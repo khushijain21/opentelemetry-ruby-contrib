@@ -6,8 +6,10 @@ The ActionMailer instrumentation is a community-maintained instrumentation for t
 
 Install the gem using:
 
-```
+```bash
+# Install just the ActionMailer instrumentation
 gem install opentelemetry-instrumentation-action_mailer
+# Install the ActionMailer instrumentation along with the rest of the Rails-related instrumentation
 gem install opentelemetry-instrumentation-rails
 ```
 
@@ -19,8 +21,10 @@ To use the instrumentation, call `use` with the name of the instrumentation:
 
 ```ruby
 OpenTelemetry::SDK.configure do |c|
-  c.use 'OpenTelemetry::Instrumentation::Rails'
+  # Use only the ActionMailer instrumentation 
   c.use 'OpenTelemetry::Instrumentation::ActionMailer'
+  # Use the ActionMailer instrumentation along with the rest of the Rails-related instrumentation
+  c.use 'OpenTelemetry::Instrumentation::Rails'
 end
 ```
 
@@ -32,26 +36,9 @@ OpenTelemetry::SDK.configure do |c|
 end
 ```
 
-### Options
-
-ActionMailer instrumentation doesn't expose email address by default, but if email address is needed, simply use `:email_address` option:
-```ruby
-OpenTelemetry::SDK.configure do |c|
-  c.use 'OpenTelemetry::Instrumentation::ActionMailer', { email_address: :include }
-end
-```
-
-If only want to hide certain field for email address:
-```ruby
-OpenTelemetry::SDK.configure do |c|
-  c.use 'OpenTelemetry::Instrumentation::ActionMailer', { email_address: :include, disallowed_notification_payload_keys: ['email.to.address'] }
-end
-```
-
-
 ## Active Support Instrumentation
 
-This instrumentation now relies entirely on `ActiveSupport::Notifications` and registers a custom Subscriber that listens to relevant events to report as spans.
+This instrumentation relies entirely on `ActiveSupport::Notifications` and registers a custom Subscriber that listens to relevant events to report as spans.
 
 See the table below for details of what [Rails Framework Hook Events](https://guides.rubyonrails.org/active_support_instrumentation.html#action-mailer) are recorded by this instrumentation:
 
@@ -60,22 +47,37 @@ See the table below for details of what [Rails Framework Hook Events](https://gu
 | `deliver.action_mailer` | :white_check_mark: | Creates an span with kind `internal` and email content and status|
 | `process.action_mailer` | :x: | Lack of useful info so ignored |
 
+### Options
+
+ActionMailer instrumentation doesn't expose email addresses by default, but if email addresses are needed, simply use `:email_address` option:
+```ruby
+OpenTelemetry::SDK.configure do |c|
+  c.use 'OpenTelemetry::Instrumentation::ActionMailer', { email_address: :include }
+end
+```
+
+If only want to hide certain attributes from the notifications payload for email address:
+```ruby
+OpenTelemetry::SDK.configure do |c|
+  c.use 'OpenTelemetry::Instrumentation::ActionMailer', { email_address: :include, disallowed_notification_payload_keys: ['email.to.address'] }
+end
+```
+
 ## Semantic Conventions
 
 Internal spans are named using the name of the `ActiveSupport` event that was provided (e.g. `action_mailer deliver`).
 
-Attributes that are specific to this instrumentation are recorded under `action_mailer deliver`:
+The following attributes from the notification payload for the `deliver.action_mailer` event are attached to `action_mailer deliver` spans:
 
 | Attribute Name | Type | Notes |
 | - | - | - |
 | `email.x_mailer` | String | Mailer class that is used to send mail |
-| `email.message_id` | String | Set from Mail gem|
+| `email.message_id` | String | Set from Mail gem |
 | `email.subject` | String | Mail subject |
-| `email.to.address` | Array | Receiver for mails (omit by default, inlcude when `email_address` set to `:include`) |
-| `email.from.address` | Array | Sender for mails (omit by default, inlcude when `email_address` set to `:include`) |
-| `email.cc.address` | Array | mails CC (omit by default, inlcude when `email_address` set to `:include`) |
-| `email.bcc.address` | Array | mails BCC (omit by default, inlcude when `email_address` set to `:include`)  |
-
+| `email.to.address` | Array | Receiver for mail (omit by default, include when `email_address` set to `:include`) |
+| `email.from.address` | Array | Sender for mail (omit by default, include when `email_address` set to `:include`) |
+| `email.cc.address` | Array | mail CC (omit by default, include when `email_address` set to `:include`) |
+| `email.bcc.address` | Array | mail BCC (omit by default, include when `email_address` set to `:include`)  |
 ## Examples
 
 Example usage can be seen in the `./example/trace_request_demonstration.ru` file [here](https://github.com/open-telemetry/opentelemetry-ruby-contrib/blob/main/instrumentation/action_mailer/example/trace_request_demonstration.ru)
@@ -83,7 +85,7 @@ Example usage can be seen in the `./example/trace_request_demonstration.ru` file
 
 ## How can I get involved?
 
-The `opentelemetry-instrumentation-action_mailer` gem source is [on github][repo-github], along with related gems including `opentelemetry-api` and `opentelemetry-sdk`.
+The `opentelemetry-instrumentation-action_mailer` gem source is [on GitHub][repo-github], along with related gems including `opentelemetry-api` and `opentelemetry-sdk`.
 
 The OpenTelemetry Ruby gems are maintained by the OpenTelemetry-Ruby special interest group (SIG). You can get involved by joining us in [GitHub Discussions][discussions-url] or attending our weekly meeting. See the [meeting calendar][community-meetings] for dates and times. For more information on this and other language SIGs, see the OpenTelemetry [community page][ruby-sig].
 
